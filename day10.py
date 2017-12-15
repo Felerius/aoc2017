@@ -1,11 +1,6 @@
 import functools
-import operator
 
-
-CIRCLE_SIZE = 256
-INPUT_SALT = [17, 31, 73, 47, 23]
-ROUNDS = 64
-DENSE_GROUP_SIZE = 16
+from knothash import calc_knot_hash, CIRCLE_SIZE
 
 
 def calc_twists(lengths):
@@ -52,45 +47,11 @@ def calc_simple_hash(input_line):
     return val1 * val2
 
 
-def calc_advanced_lengths(input_line):
-    input_bytes = input_line.strip().encode('ascii')
-    return list(input_bytes) + INPUT_SALT
-
-
-def apply_twist_to_circle(circle, start, length):
-    i1, i2 = start, (start + length - 1) % CIRCLE_SIZE
-    for _ in range(length // 2):
-        circle[i1], circle[i2] = circle[i2], circle[i1]
-        i1 = (i1 + 1) % CIRCLE_SIZE
-        i2 = (i2 - 1) % CIRCLE_SIZE
-
-
-def to_dense(circle):
-    for i in range(0, len(circle), DENSE_GROUP_SIZE):
-        yield functools.reduce(operator.xor, circle[i:i + DENSE_GROUP_SIZE])
-
-
-def encode_as_hex(dense_values):
-    return bytes(dense_values).hex()
-
-
-def calc_knot_hash(input_line):
-    lengths = calc_advanced_lengths(input_line)
-    pos = skip_size = 0
-    circle = list(range(CIRCLE_SIZE))
-    for _ in range(ROUNDS):
-        for length in lengths:
-            apply_twist_to_circle(circle, pos, length)
-            pos = (pos + length + skip_size) % CIRCLE_SIZE
-            skip_size += 1
-    return encode_as_hex(to_dense(circle))
-
-
 def main():
     with open('day10.in') as f:
         input_line = f.readline()
     print(calc_simple_hash(input_line))
-    print(calc_knot_hash(input_line))
+    print(calc_knot_hash(input_line.strip()).hex())
 
 
 if __name__ == '__main__':
